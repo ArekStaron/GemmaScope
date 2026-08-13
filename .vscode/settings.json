@@ -1,0 +1,15 @@
+{
+    "python.analysis.diagnosticMode": "openFilesOnly",
+    "python.analysis.autoImportCompletions": false,
+    "python.analysis.packageIndexDepths": [
+        { "name": "torch", "depth": 1 },
+        { "name": "torchvision", "depth": 1 },
+        { "name": "transformers", "depth": 1 },
+        { "name": "pandas", "depth": 1 },
+        { "name": "numpy", "depth": 2 }
+    ],
+    "python.analysis.typeCheckingMode": "basic",
+    "files.watcherExclude": {
+        "**/__pycache__/**": true
+    }
+}

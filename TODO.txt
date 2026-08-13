@@ -1,0 +1,14 @@
+Pobierz model gemma 2B wersja do torcha 
+Zrób GemmaScope:
+    Jak?
+    Jak działa dokładnie:
+    Bierze wektor który przechodzi przez sieć uczy się przypisywać mu kategorie których nie zna musi przypisac 
+    do np 10 z np 16 000 jak bardzo pasuje dany token i uczy się podobne tokeny dawać w te same kategorie 
+    np. lablador , pimpek , hasky , owczarek niemiecki --> pies 
+    Bardziej zaawansowany co ma wiecej kateogir przypisze wiecej kategori do każdego tokenu
+
+
+
+
+Przedź przez wyniki z większym modelem by zrobić labele użyć antropic open sorce 
+
