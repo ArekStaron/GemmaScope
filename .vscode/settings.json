@@ -1,15 +1,36 @@
 {
+    // Tryb lekki - najwazniejsze ustawienie. Wylacza ciezkie analizy w tle.
+    "python.analysis.languageServerMode": "light",
+
+    // Wylacza budowanie indeksu wszystkich pakietow przy starcie (torch, transformers...)
+    "python.analysis.indexing": false,
+
+    // Analizuj tylko otwarte pliki, nie caly projekt
     "python.analysis.diagnosticMode": "openFilesOnly",
+
+    // Nie skanuj pakietow pod auto-import przy kazdej podpowiedzi
     "python.analysis.autoImportCompletions": false,
-    "python.analysis.packageIndexDepths": [
-        { "name": "torch", "depth": 1 },
-        { "name": "torchvision", "depth": 1 },
-        { "name": "transformers", "depth": 1 },
-        { "name": "pandas", "depth": 1 },
-        { "name": "numpy", "depth": 2 }
-    ],
+
+    // Zachowaj podpowiedzi typow z bibliotek (potrzebne dla torch/transformers)
+    "python.analysis.useLibraryCodeForTypes": true,
+
     "python.analysis.typeCheckingMode": "basic",
+
+    // Przypiety interpreter - bez tego VSCode skanuje system w poszukiwaniu Pythonow
+    "python.defaultInterpreterPath": "C:\\Users\\arosk\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+
+    "python.analysis.exclude": [
+        "**/__pycache__",
+        "**/.git"
+    ],
+
     "files.watcherExclude": {
-        "**/__pycache__/**": true
+        "**/__pycache__/**": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true
+    },
+
+    "search.exclude": {
+        "**/__pycache__": true
     }
 }
