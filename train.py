@@ -35,7 +35,7 @@ h = gemma.model.layers[13].register_forward_hook(hook)
 lr = 1e-3
 optimizer = torch.optim.Adam(SAE_model.parameters(), lr=lr )
 
-lam = 0
+lam = 0.01
 
 
 for text in data:
@@ -55,7 +55,7 @@ for text in data:
     v = acts["vector"].float()
     assert torch.isfinite(v).all()
     
-    for i in range(1000):
+    for i in range(500):
 
         f ,x_hat , active =  SAE_model(v)
         l0 = active.sum(-1).mean()
@@ -75,7 +75,7 @@ for text in data:
     tok_per_sec = seq_len/(t_1-t_0)
 
 
-    print(f"time:{t_1-t_0:.4f}| sequence len:{seq_len}| tok_per_sec:{tok_per_sec:.4f}| max_memory:{torch.cuda.max_memory_allocated()/1e-9:.4f}")
+    print(f"time:{t_1-t_0:.4f}| sequence len:{seq_len}| tok_per_sec:{tok_per_sec:.4f}| max_memory:{torch.cuda.max_memory_allocated()/1e9:.4f}")
     print(f"loss:{loss.item():.4f}| threshold mean:{SAE_model.threshold.mean().item():.6f}| l0:{l0.item():.4f}")
 
     
