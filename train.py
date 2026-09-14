@@ -7,7 +7,7 @@ import tqdm
 
 data = load_dataset("HuggingFaceFW/fineweb-edu" ,streaming=True , split="train")
 
-data = data.take(10)
+data = data.take(1)
 
 device = "cuda"
 SAE_model = JumpRELUSAE().to(device)
@@ -32,17 +32,17 @@ def hook(module , inp , out):
 
 h = gemma.model.layers[13].register_forward_hook(hook)
 
-lr = 1e-4
+lr = 1e-3
 optimizer = torch.optim.Adam(SAE_model.parameters(), lr=lr )
 
-lam = 0.01
+lam = 0
 
 
 for text in data:
 
     t_0 = time.time()
 
-    token = tokenizer(text["text"] , return_tensors = "pt" , truncation=True, max_length=1024 )
+    token = tokenizer(text["text"] , return_tensors = "pt" , truncation=True, max_length=100 )
     x = token.input_ids.to(device)
     seq_len = x.shape[-1]
 
@@ -55,16 +55,19 @@ for text in data:
     v = acts["vector"].float()
     assert torch.isfinite(v).all()
     
+    for i in range(1000):
 
-    f ,x_hat , active =  SAE_model(v)
-    l0 = active.sum(-1).mean()
-    loss = mse_loss(v , x_hat) + lam * l0
+        f ,x_hat , active =  SAE_model(v)
+        l0 = active.sum(-1).mean()
+        loss = mse_loss(v , x_hat) + lam * l0
 
-    loss.backward()
-    optimizer.step()
+        print(f"loss: {loss}")
+        loss.backward()
+        optimizer.step()
 
-    optimizer.zero_grad()    
+        optimizer.zero_grad()       
 
+        
 
     torch.cuda.synchronize()
     t_1 = time.time()
@@ -72,7 +75,7 @@ for text in data:
     tok_per_sec = seq_len/(t_1-t_0)
 
 
-    print(f"time:{t_1-t_0:.4f}| sequence len:{seq_len}| tok_per_sec:{tok_per_sec:.4f}| max_memory:{torch.cuda.max_memory_allocated()}")
+    print(f"time:{t_1-t_0:.4f}| sequence len:{seq_len}| tok_per_sec:{tok_per_sec:.4f}| max_memory:{torch.cuda.max_memory_allocated()/1e-9:.4f}")
     print(f"loss:{loss.item():.4f}| threshold mean:{SAE_model.threshold.mean().item():.6f}| l0:{l0.item():.4f}")
 
     
