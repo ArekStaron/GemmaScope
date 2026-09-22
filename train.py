@@ -54,8 +54,15 @@ token_count = 0
 total_tokens = 400_000_000
 step = 0
 
+gemma_emb = 2304
+BATCH_SIZE = 4096
+
+
+token_pool = torch.empty(0,gemma_emb , device=device)
+TOKEN_POOL_SIZE = 100_000
+
 for text in data:
-    batch = []
+    
 
     # dodaj akulumacje do batcha 4096 
     # Najpierw gemma tokenizuje
@@ -65,58 +72,59 @@ for text in data:
     # W praktyce przepisać pętle 
     token = tokenizer(text["text"] , return_tensors = "pt")
     x = token.input_ids.to(device)
-    seq_len = x.shape[-1]
-    token_count += seq_len
+    token_count += x.shape[-1]
+    
 
+    with torch.no_grad():
+        try:
+            gemma(x)
+        except StopForwad:
+            pass
 
+    v = acts["vector"].float()
+    assert torch.isfinite(v).all()
 
-    if token_count >= total_tokens:
-        # TODO dodaj zakończenie pętli
-        break
+    token_pool = torch.cat([token_pool,v])
 
+    if token_pool.size(0) >= TOKEN_POOL_SIZE:
+        #shuffle 
+        pass
 
-    while len(batch) >= 4096:
-        step +=1
-        t_0 = time.time()
-
-        
-        with torch.no_grad():
-            try:
-                gemma(x)
-            except StopForwad:
-                pass
-
-        v = acts["vector"].float()
-        assert torch.isfinite(v).all()
-        
-        
-
-        f ,x_hat , active =  SAE_model(v)
-        l0 = active.sum(-1).mean()
-
-        # TODO dodaj funkcje get 
-        loss = mse_loss(v , x_hat) + lam * l0
-
-
-        loss.backward()
-        optimizer.step()
-
-        optimizer.zero_grad()       
-
+        while token_pool.size(0) >= BATCH_SIZE:
+            step +=1
+            t_0 = time.time()
+            
             
 
-        torch.cuda.synchronize()
-        t_1 = time.time()
+            f ,x_hat , active =  SAE_model(v)
+            l0 = active.sum(-1).mean()
 
-        tok_per_sec = seq_len/(t_1-t_0)
+            # TODO dodaj funkcje get 
+            loss = mse_loss(v , x_hat) + lam * l0
 
 
-        print(f"time:{t_1-t_0:.4f}| sequence len:{seq_len}| tok_per_sec:{tok_per_sec:.4f}| max_memory:{torch.cuda.max_memory_allocated()/1e9:.4f}")
-        print(f"loss:{loss.item():.4f}| threshold mean:{SAE_model.threshold.mean().item():.6f}| l0:{l0.item():.4f}")
+            loss.backward()
+            optimizer.step()
+
+            optimizer.zero_grad()       
+
+                
+
+            torch.cuda.synchronize()
+            t_1 = time.time()
+
+            tok_per_sec = BATCH_SIZE/(t_1-t_0)
+
+
+            print(f"time:{t_1-t_0:.4f}| tok_per_sec:{tok_per_sec:.4f}| max_memory:{torch.cuda.max_memory_allocated()/1e9:.4f}")
+            print(f"loss:{loss.item():.4f}| threshold mean:{SAE_model.threshold.mean().item():.6f}| l0:{l0.item():.4f}")
+
+            if token_count >= total_tokens:
+                    # TODO dodaj zakończenie pętli
+                    break
+            
 
         
-
-    
     
     
 
